@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -26,7 +25,7 @@ public class ProjectileBehaviour : MonoBehaviour
     //Allows for one 
     public int maxAmountOfProjectiles = 10;
     private int currentProjectileCount = 0;
-   
+
     //Clamp Boundries for the X and Y axis
     public float Xmin = 0f;
     public float Xmax = 89f;
@@ -86,7 +85,7 @@ public class ProjectileBehaviour : MonoBehaviour
         }
 
         lineRenderer.positionCount = resolution;
-        for (int i = 0; i < points.Length; i++) 
+        for (int i = 0; i < points.Length; i++)
         {
             lineRenderer.SetPosition(i, points[i]);
         }
@@ -141,7 +140,7 @@ public class ProjectileBehaviour : MonoBehaviour
         fireForce = Mathf.Clamp(fireForce, 0f, 100f);
 
         UIUpdate uiUpdater = FindObjectOfType<UIUpdate>();
-        if (uiUpdater != null) 
+        if (uiUpdater != null)
         {
             uiUpdater.UpdatePower(fireForce);
             uiUpdater.UpdateAngles(yaw, pitch);
@@ -151,10 +150,10 @@ public class ProjectileBehaviour : MonoBehaviour
         if (Input.GetKeyUp(Fire) && currentProjectileCount < 1 && currentAmmo > 0)
         {
             GameObject newProjectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
-            Rigidbody rb = newProjectile.GetComponent<Rigidbody>();
-            if (rb != null) 
+            ProjectilePrefab projectileprefabScript = newProjectile.GetComponent<ProjectilePrefab>();
+            if (projectileprefabScript != null)
             {
-                rb.velocity = firePoint.forward * fireForce;
+                projectileprefabScript.projectilebehaviour = this;
             }
 
             //Projectile increment count
@@ -163,21 +162,21 @@ public class ProjectileBehaviour : MonoBehaviour
 
             //Destroys any Projectile Clone for optimisation
 
-            
-            
-            
+
+
+
         }
-     
-        
+
+
     }
 
- 
+
 
 
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Ammo_Pickup")) 
+        if (other.CompareTag("Ammo_Pickup"))
         {
             currentAmmo++;
             currentAmmo = Mathf.Clamp(currentAmmo, 0, maxAmmo);
