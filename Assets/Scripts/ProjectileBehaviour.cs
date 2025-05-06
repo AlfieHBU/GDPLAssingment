@@ -55,7 +55,7 @@ public class ProjectileBehaviour : MonoBehaviour
 
     void Start()
     {
-        currentAmmo = maxAmmo;
+        currentAmmo = maxAmmo; 
     }
 
     void DrawTrajectory()
@@ -118,11 +118,11 @@ public class ProjectileBehaviour : MonoBehaviour
             Xrotation += rotationSpeed;
 
         //Fire Power Up
-        if (Input.GetKey(PowerUp))
-            fireForce += 10f * Time.deltaTime;
+        if (Input.GetKeyDown(PowerUp))
+            fireForce += 10f;
         //Fire Power Down
-        if (Input.GetKey(PowerDown))
-            fireForce -= 10f * Time.deltaTime;
+        if (Input.GetKeyDown(PowerDown))
+            fireForce -= 10f;
 
         //Pitch, Yaw and Roll update
         pitch += Xrotation * Time.deltaTime;
@@ -147,40 +147,39 @@ public class ProjectileBehaviour : MonoBehaviour
         }
 
         //When fire is pressed (Spacebar = fire as seen within the Unity Inspector)
-        if (Input.GetKeyUp(Fire) && currentProjectileCount < 1 && currentAmmo > 0)
+        if (Input.GetKeyUp(Fire) && currentProjectileCount < maxAmountOfProjectiles && currentAmmo > 0)
         {
             GameObject newProjectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
-            ProjectilePrefab projectileprefabScript = newProjectile.GetComponent<ProjectilePrefab>();
-            if (projectileprefabScript != null)
+            Rigidbody rb = newProjectile.GetComponent<Rigidbody>();
+            if (rb != null ) 
             {
-                projectileprefabScript.projectilebehaviour = this;
+                rb.AddForce(firePoint.forward * fireForce, ForceMode.Impulse);
+            }
+
+            ProjectilePrefab projectileprefabSript = newProjectile.GetComponent<ProjectilePrefab>();
+            if (projectileprefabSript != null) 
+            {
+                projectileprefabSript.projectilebehaviour = this;
             }
 
             //Projectile increment count
             currentProjectileCount++;
             currentAmmo--;
-
-            //Destroys any Projectile Clone for optimisation
-
-
-
-
+            uiUpdater?.UpdateAmmo(currentAmmo);
+            
         }
-
-
     }
-
-
-
-
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Ammo_Pickup"))
         {
             currentAmmo++;
             currentAmmo = Mathf.Clamp(currentAmmo, 0, maxAmmo);
-            Destroy(other.gameObject);
+            UIUpdate uiUpdater = FindObjectOfType<UIUpdate>();
+            uiUpdater?.UpdateAmmo(int ammo)
+            {
+                Destroy(other.gameObject);
+            }
         }
     }
 
