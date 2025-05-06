@@ -165,8 +165,13 @@ public class ProjectileBehaviour : MonoBehaviour
             //Projectile increment count
             currentProjectileCount++;
             currentAmmo--;
-            uiUpdater?.UpdateAmmo(currentAmmo);
-            
+
+            if (uiUpdater != null) 
+            {
+                uiUpdater.UpdateAmmo(currentAmmo);
+            }
+
+            Debug.Log("Ammo after firing: " + currentAmmo);
         }
     }
     private void OnTriggerEnter(Collider other)
@@ -176,12 +181,10 @@ public class ProjectileBehaviour : MonoBehaviour
             currentAmmo++;
             currentAmmo = Mathf.Clamp(currentAmmo, 0, maxAmmo);
             UIUpdate uiUpdater = FindObjectOfType<UIUpdate>();
-            uiUpdater?.UpdateAmmo(int ammo)
+            uiUpdater?.UpdateAmmo(currentAmmo);
             {
                 Destroy(other.gameObject);
             }
         }
     }
-
-
 }
