@@ -19,6 +19,11 @@ public class ProjectilePrefab : MonoBehaviour
         }
         else if (tag == "Ammo_Pickup")
         {
+            if (projectilebehaviour != null) 
+            {
+                projectilebehaviour.AddAmmo(3);
+            }
+
             Destroy(collision.gameObject);
             SetInactiveAndCleanUp();
         }

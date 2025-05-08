@@ -8,12 +8,11 @@ TagManager:
   - Ammo_Pickup
   - Hazards
   - Enviroment
-  - Projectile
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - groundLayer
   - Water
   - UI
   - 

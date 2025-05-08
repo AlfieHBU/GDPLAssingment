@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -22,7 +23,7 @@ public class ProjectileBehaviour : MonoBehaviour
     public float rotationSpeed = 100f;
     //Applied Force to fired projectiles
     public float fireForce = 0.5f;
-    //Allows for one 
+    //
     public int maxAmountOfProjectiles = 10;
     private int currentProjectileCount = 0;
 
@@ -51,6 +52,12 @@ public class ProjectileBehaviour : MonoBehaviour
     public void OnProjectileDestroyed()
     {
         currentProjectileCount = Mathf.Max(0, currentProjectileCount - 1);
+    }
+
+    public void AddAmmo(int ammo) 
+    {
+        currentAmmo = Mathf.Clamp(currentAmmo + ammo, 0, maxAmmo);
+        FindObjectOfType<UIUpdate>()?.UpdateAmmo(currentAmmo);
     }
 
     void Start()
