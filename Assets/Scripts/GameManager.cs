@@ -9,11 +9,11 @@ public class GameManager : MonoBehaviour
     public GameObject loseScreen;
     public int targetCount = 0;
     public static bool playerWon = false;
-
     private bool hasgameEnded = false;
 
     void Start()
     {
+
         string currentScene = SceneManager.GetActiveScene().name;
         if (currentScene == "ResultsScene")
         {
