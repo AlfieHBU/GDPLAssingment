@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GDPL-PROJECT-UPDATED-AS-OF-01052025.unity
     guid: 64e91afe3fe67174d804916052012257
+  - enabled: 1
+    path: Assets/ResultsScene.unity
+    guid: a4c5e7a5ed17a6e4fabd4301eb355534
   m_configObjects: {}

@@ -7,46 +7,87 @@ public class ProjectilePrefab : MonoBehaviour
 {
     public float Yfall = -50f;
     public ProjectileBehaviour projectilebehaviour;
-    private void OnCollisionEnter(Collision collision)
-    {
-        string tag = collision.gameObject.tag;
-        if (tag == "Enemy")
-        {
-            Destroy(collision.gameObject);
-            int remaining = GameObject.FindGameObjectsWithTag("Enemy").Length - 1;
-            FindObjectOfType<UIUpdate>()?.UpdateTargetCount(remaining);
-            SetInactiveAndCleanUp();
-        }
-        else if (tag == "Ammo_Pickup")
-        {
-            if (projectilebehaviour != null) 
-            {
-                projectilebehaviour.AddAmmo(3);
-            }
+    public GameObject impactEffect;
+    public AudioClip impactSound;
 
-            Destroy(collision.gameObject);
-            SetInactiveAndCleanUp();
+    public float timeBeforeDespawn = 10f;
+    private float timer = 0f;
+    private bool hasBeenFired = false;
+
+    void Start()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null && rb.useGravity) 
+        {
+            hasBeenFired = true;
         }
     }
 
-    private void Update()
+    void Update()
     {
         if (transform.position.y < Yfall)
         {
-            SetInactiveAndCleanUp();
+            SelfDestruct();
+        }
+
+        if (hasBeenFired) 
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null && rb.useGravity) 
+            {
+                hasBeenFired = true;
+            }
+        }
+
+        if (hasBeenFired) 
+        {
+            timer += Time.deltaTime;
+            if (timer >= timeBeforeDespawn) 
+            {
+                SelfDestruct();
+            }
         }
     }
 
-    private void DeactivateProjectile()
+    void PlayImpactEffects(Collision collision) 
     {
-        gameObject.SetActive(false);
-        projectilebehaviour?.OnProjectileDestroyed();
-        Destroy(gameObject);
+        if (impactSound != null)
+        {
+            AudioSource.PlayClipAtPoint(impactSound, transform.position);
+        }
+
+        if (impactEffect != null) 
+        {
+            ContactPoint contact = collision.contacts[0];
+            Instantiate(impactEffect, contact.point, Quaternion.LookRotation(contact.normal));
+        }
     }
-    private void SetInactiveAndCleanUp()
+
+    private void OnCollisionEnter(Collision collision) 
     {
-        //Sets the projectile as false and destroys as soon as one of the three criteria are met: either colliding with an enemy or ammo pickup or falling below a certain Y value.
-        gameObject.SetActive(false);
+        string tag = collision.gameObject.tag;
+
+        if (tag == "Enemy")
+        {
+            PlayImpactEffects(collision);
+            Destroy(collision.gameObject);
+            int remaining = GameObject.FindGameObjectsWithTag("Enemy").Length - 1;
+            FindObjectOfType<UIUpdate>()?.UpdateTargetCount(remaining);
+            FindObjectOfType<GameManager>()?.TargetDestroyed();
+            SelfDestruct();
+        }
+        else if (tag == "Ammo_Pickup") 
+        {
+            PlayImpactEffects(collision);
+            projectilebehaviour?.AddAmmo(3);
+            Destroy(collision.gameObject);
+            SelfDestruct();
+        }
+    }
+
+    void SelfDestruct() 
+    {
+        projectilebehaviour.OnProjectileDestroyed();
         Destroy(gameObject);
     }
 }

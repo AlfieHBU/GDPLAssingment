@@ -2,7 +2,6 @@ using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Unity.PlasticSCM.Editor.WebApi;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -48,21 +47,36 @@ public class ProjectileBehaviour : MonoBehaviour
     //
     public int maxAmmo = 10;
     private int currentAmmo;
-
+    private GameManager gameManager;
+  
+   
     public void OnProjectileDestroyed()
     {
         currentProjectileCount = Mathf.Max(0, currentProjectileCount - 1);
+
+        if (currentAmmo <= 0 &&
+            currentProjectileCount <= 0 &&
+            GameObject.FindGameObjectsWithTag("Enemy").Length > 0) 
+        {
+            gameManager?.LoseGame();
+        }
     }
 
     public void AddAmmo(int ammo) 
     {
-        currentAmmo = Mathf.Clamp(currentAmmo + ammo, 0, maxAmmo);
+        currentAmmo += ammo;
         FindObjectOfType<UIUpdate>()?.UpdateAmmo(currentAmmo);
     }
 
     void Start()
     {
-        currentAmmo = maxAmmo; 
+        currentAmmo = maxAmmo;
+        gameManager = FindObjectOfType<GameManager>();
+        UIUpdate uiUpdater = FindObjectOfType<UIUpdate>();
+        if (uiUpdater != null)
+        {
+            uiUpdater.UpdateAmmo(currentAmmo);
+        }
     }
 
     void DrawTrajectory()
@@ -73,7 +87,8 @@ public class ProjectileBehaviour : MonoBehaviour
             return;
         }
 
-        int resolution = 30;
+        //How many points are being drawn along the line, resolution is set to not have the trajectory line go the entire way, making the game more challenging.
+        int resolution = 10;
         Vector3[] points = new Vector3[resolution];
 
         Vector3 startPosition = firePoint.position;
@@ -160,7 +175,7 @@ public class ProjectileBehaviour : MonoBehaviour
             Rigidbody rb = newProjectile.GetComponent<Rigidbody>();
             if (rb != null ) 
             {
-                rb.AddForce(firePoint.forward * fireForce, ForceMode.Impulse);
+                rb.isKinematic = true;
             }
 
             ProjectilePrefab projectileprefabSript = newProjectile.GetComponent<ProjectilePrefab>();
@@ -172,13 +187,26 @@ public class ProjectileBehaviour : MonoBehaviour
             //Projectile increment count
             currentProjectileCount++;
             currentAmmo--;
-
+            
             if (uiUpdater != null) 
             {
                 uiUpdater.UpdateAmmo(currentAmmo);
             }
 
             Debug.Log("Ammo after firing: " + currentAmmo);
+
+            StartCoroutine(FireProjectileAfterDelay(newProjectile, rb));
+        }
+    }
+
+    private IEnumerator FireProjectileAfterDelay(GameObject newProjectile, Rigidbody rb) 
+    {
+        yield return null;
+
+        if (rb != null) 
+        {
+            rb.isKinematic = false;
+            rb.AddForce(firePoint.forward * fireForce, ForceMode.Impulse);
         }
     }
     private void OnTriggerEnter(Collider other)
@@ -186,12 +214,10 @@ public class ProjectileBehaviour : MonoBehaviour
         if (other.CompareTag("Ammo_Pickup"))
         {
             currentAmmo++;
-            currentAmmo = Mathf.Clamp(currentAmmo, 0, maxAmmo);
             UIUpdate uiUpdater = FindObjectOfType<UIUpdate>();
             uiUpdater?.UpdateAmmo(currentAmmo);
-            {
-                Destroy(other.gameObject);
-            }
+            Destroy(other.gameObject);
+            
         }
     }
 }

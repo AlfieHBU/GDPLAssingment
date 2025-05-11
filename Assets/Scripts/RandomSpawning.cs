@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -8,49 +9,83 @@ public class RandomSpawning : MonoBehaviour
 {
     public GameObject[] enemyPrefabs;
     public GameObject[] obstaclePrefabs;
-    public float spawnRadius = 2f;
-    public float spawnInterval = 5f;
+    public Transform[] spawnPoints;
+    public Transform playerTransform;
 
     public int amountOfEnemies = 10;
     public int amountOfObstacles = 5;
-    public float rayLength = 50f;
-
-    public Vector2 topLeft = new Vector2(-50f, 50f);
-    public Vector2 bottomRight = new Vector2(50f, -50f);
-    public float height = 30f;
 
     void Start()
     {
-        SpawnGroup(enemyPrefabs, amountOfEnemies);
-        SpawnGroup(new GameObject[] { obstaclePrefabs }, amountOfObstacles);
+        List<Transform> availablePoints = new List<Transform>(spawnPoints);
+
+        List<GameObject> Ammo_SkeletonPrefabs = new List<GameObject>();
+        List<GameObject> EnemyPrefab = new List<GameObject>();
+
+        foreach (GameObject enemy in enemyPrefabs)
+        {
+            if (enemy.CompareTag("Ammo_Pickup"))
+                Ammo_SkeletonPrefabs.Add(enemy);
+            else
+                EnemyPrefab.Add(enemy);
+        }
+
+        int ammoToSpawn = 2;
+        if (ammoToSpawn > 0)
+
+        {
+            SpawnFromPoints(Ammo_SkeletonPrefabs.ToArray(), ammoToSpawn, availablePoints, true);
+        }
+        else
+        {
+            Debug.LogWarning("No Skeletons found in enemyPrefabs");
+        }
+
+
+
+        int regularCount = Mathf.Max(0, amountOfEnemies - ammoToSpawn);
+        if (enemyPrefabs.Count() > 0)
+        {
+            SpawnFromPoints(EnemyPrefab.ToArray(), regularCount, availablePoints, true);
+        }
+        else
+        {
+            Debug.LogWarning("No regular enemies found to call and spawn");
+        }
+
+        if (obstaclePrefabs.Length > 0)
+        {
+            SpawnFromPoints(obstaclePrefabs, amountOfObstacles, availablePoints, false);
+        }
+        else
+        {
+            Debug.LogWarning("No Obstacles assigned");
+        }
+
+        int realEnemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+        FindObjectOfType<GameManager>().targetCount = realEnemyCount;
     }
 
-    async void SpawnGroup(GameObject[] prefabs, int count) 
+    void SpawnFromPoints(GameObject[] prefabs, int count, List<Transform> availablePoints, bool facePlayer)
     {
-        int spawned = 0;
-        int maxAttempts = count * 10;
-        int attempts = 0;
+        if (prefabs == null || prefabs.Length == 0 || availablePoints.Count == 0) return;
 
-        while (spawned < count && attempts < maxAttempts) 
-        { 
-            attempts++;
-            await Task.Delay(1);
-            if (!Application.isPlaying) return;
-
-            Vector3 spawnPoint = GetRandomPoint();
-            if (TryGetSpawnPosition(spawnPoint, out Vector3 hitPoint)) 
-            {
-                if (!HasNearbyObjects(hitPoint)) 
-                {
-                    GameObject prefabToSpawn = prefabs[Random.Range(0, prefabs.Length)];
-                    Instantiate(prefabToSpawn, hitPoint, Quaternion.identity);
-                    spawned++;
-                }
-            }
-        }
-        Vector3 GetRandomPoint() 
+        for (int i = 0; i < count && availablePoints.Count > 0; i++)
         {
-            float x = Random.Range(topLeft)
+            int spawnIndex = Random.Range(0, availablePoints.Count);
+            Transform spawnPoint = availablePoints[spawnIndex];
+            availablePoints.RemoveAt(spawnIndex);
+
+            GameObject prefab = prefabs[Random.Range(0, prefabs.Length)];
+            GameObject instance = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+
+            if (facePlayer && playerTransform != null)
+            {
+                Vector3 lookDirection = playerTransform.position - instance.transform.position;
+                lookDirection.y = 0;
+                if (lookDirection != Vector3.zero)
+                    instance.transform.rotation = Quaternion.LookRotation(lookDirection);
+            }
         }
     }
 }

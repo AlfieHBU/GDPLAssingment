@@ -148,3 +148,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Yfall: -50
   projectilebehaviour: {fileID: 0}
+  impactEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
+  timeBeforeDespawn: 10
