@@ -22,7 +22,7 @@ public class ProjectileBehaviour : MonoBehaviour
     public float rotationSpeed = 100f;
     //Applied Force to fired projectiles
     public float fireForce = 0.5f;
-    //
+    //Projectile management
     public int maxAmountOfProjectiles = 10;
     private int currentProjectileCount = 0;
 
@@ -31,10 +31,7 @@ public class ProjectileBehaviour : MonoBehaviour
     public float Xmax = 89f;
     public float Ymin = -89f;
     public float Ymax = 89f;
-    public float Zmin = -89f;
-    public float Zmax = 89f;
-
-    //Tracks the rotation of the object in the X axis to help out the clamp function 
+    
     private float pitch = 0f;
     private float yaw = 0f;
     private float roll = 0f;
@@ -44,16 +41,17 @@ public class ProjectileBehaviour : MonoBehaviour
     public Transform firePoint;
     public LineRenderer lineRenderer;
 
-    //
+    //Ammo tracking
     public int maxAmmo = 10;
     private int currentAmmo;
     private GameManager gameManager;
   
-   
+    //Called when a projectile is destroyed
     public void OnProjectileDestroyed()
     {
         currentProjectileCount = Mathf.Max(0, currentProjectileCount - 1);
-
+        
+        //If statement is used to determine if there are still enemies but no more ammo then the player loses
         if (currentAmmo <= 0 &&
             currentProjectileCount <= 0 &&
             GameObject.FindGameObjectsWithTag("Enemy").Length > 0) 
@@ -62,6 +60,7 @@ public class ProjectileBehaviour : MonoBehaviour
         }
     }
 
+    //Adds collected ammo and updates UI
     public void AddAmmo(int ammo) 
     {
         currentAmmo += ammo;
@@ -79,6 +78,7 @@ public class ProjectileBehaviour : MonoBehaviour
         }
     }
 
+    //Draws Trajectory Line using lineRenderer
     void DrawTrajectory()
     {
         if (lineRenderer == null)
@@ -121,8 +121,7 @@ public class ProjectileBehaviour : MonoBehaviour
 
         float Yrotation = 0f;
         float Xrotation = 0f;
-        float Zrotation = 0f;
-
+        
         //Rotate Left
         if (Input.GetKey(pressLeft))
             Yrotation -= rotationSpeed;
@@ -146,21 +145,24 @@ public class ProjectileBehaviour : MonoBehaviour
         if (Input.GetKeyDown(PowerDown))
             fireForce -= 10f;
 
-        //Pitch, Yaw and Roll update
+        //Pitch and Yaw update
         pitch += Xrotation * Time.deltaTime;
         yaw += Yrotation * Time.deltaTime;
-        roll += Zrotation * Time.deltaTime;
+        
 
         //Clamp X and Y axis
         pitch = Mathf.Clamp(pitch, Xmin, Xmax);
         yaw = Mathf.Clamp(yaw, Ymin, Ymax);
-        roll = Mathf.Clamp(roll, Zmin, Zmax);
+        
 
+        //Apply rotation to projectile
         Vector3 targetRotation = new Vector3(pitch, yaw, roll);
         transform.localEulerAngles = targetRotation;
 
+        //Clamp fire force between 0-100
         fireForce = Mathf.Clamp(fireForce, 0f, 100f);
 
+        //Update UI
         UIUpdate uiUpdater = FindObjectOfType<UIUpdate>();
         if (uiUpdater != null)
         {
@@ -168,6 +170,7 @@ public class ProjectileBehaviour : MonoBehaviour
             uiUpdater.UpdateAngles(yaw, pitch);
         }
 
+        //Firing logic 
         //When fire is pressed (Spacebar = fire as seen within the Unity Inspector)
         if (Input.GetKeyUp(Fire) && currentProjectileCount < maxAmountOfProjectiles && currentAmmo > 0)
         {
@@ -199,6 +202,7 @@ public class ProjectileBehaviour : MonoBehaviour
         }
     }
 
+    //Delays firing to ensure that the projectile physics are set up
     private IEnumerator FireProjectileAfterDelay(GameObject newProjectile, Rigidbody rb) 
     {
         yield return null;
@@ -209,6 +213,8 @@ public class ProjectileBehaviour : MonoBehaviour
             rb.AddForce(firePoint.forward * fireForce, ForceMode.Impulse);
         }
     }
+
+    //Collect ammo when colliding with ammo pickup
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Ammo_Pickup"))

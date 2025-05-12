@@ -6,11 +6,13 @@ using UnityEngine.SceneManagement;
 
 public class WinLoseSceneManager : MonoBehaviour
 {
+    //References to the win and lose canvases that the player will see depending on if they win or lose
     public GameObject Win_Canvas;
     public GameObject Lose_Canvas;
 
     void Start()
     {
+        //Sets active the relevant canvas depending on the final state of the game (winning or losing)
         if (GameManager.playerWon)
         {
             Win_Canvas.SetActive(true);
@@ -23,19 +25,22 @@ public class WinLoseSceneManager : MonoBehaviour
         }
     }
 
+    //Reloads prior scene to 'restart' the game
     public void RestartGame() 
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
     }
 
+    //Loads the main menu due to the menu scene being set as '0' within the build settings
     public void MainMenu()
     {
         SceneManager.LoadScene(0);
     }
 
+    //Quits the game
     public void QuitGame() 
     {
-        Debug.Log("QUIT");
+        Debug.Log("QUIT"); 
         Application.Quit();
     }
 }
