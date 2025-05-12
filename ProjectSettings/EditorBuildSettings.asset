@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/StartScreen.unity
     guid: 6723aa78c6f720f4a831fc8bf00743b6
   - enabled: 1
-    path: Assets/GDPL-PROJECT-UPDATED-AS-OF-01052025.unity
+    path: Assets/Final_Build_Game_Scene.unity
     guid: 64e91afe3fe67174d804916052012257
   - enabled: 1
     path: Assets/ResultsScene.unity
