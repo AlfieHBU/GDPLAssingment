@@ -9,7 +9,7 @@ public class EnemyScript : MonoBehaviour
     public float Yfall = -10f;
     void Update()
     {
-        //Deestroy the enemy if it falls below the Y threshold
+        //Destroy the enemy if it falls below the Y threshold
         if (transform.position.y < Yfall)
             Destroy(gameObject);
     }
